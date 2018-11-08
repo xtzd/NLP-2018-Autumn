@@ -1,6 +1,9 @@
+
 import random
+import itertools
 
 mydeck=[r+s for r in '23456789TJQKA' for s in 'HSDC']
+mydeck+=['?B','?R']
 # 13 rankings
 # 4 suits: heart-spade-diamond-club
 
@@ -33,8 +36,23 @@ def hand_rank(hand):
             1 if (2,1,1,1)==counts else
             0),ranks
 
+def best_hand(hand):
+    "select best 5 of 7"
+    best=max(itertools.combinations(hand,5),key=hand_rank)
+    return best
+
+def replacement(card):
+    if card.startswith('?'): return [r+s for r in '23456789TJQKA' for s in 'HSDC']
+    else: return [card]
+
+def best_wild_hand(hand):
+    "select best 5 of 7 after replace joker to any possible car"
+    hands=set(best_hand(h) for h in itertools.product(*map(replacement,hand)))
+    return max(hands,key=hand_rank)
+
 
 def allmax(hands,key=None):
+
     result,maxval=[],None
     key=key or (lambda x:x)
     for x in hands:
@@ -44,20 +62,16 @@ def allmax(hands,key=None):
         elif xval==maxval:
             result.append(x)
     return result
-    # key=key or (lambda x:x)
-    # hr=[key(h)[0] for h in hands]
-    # maxhr=max(hr)
-    # return hands[hr.index(maxhr)]
 
 
-def poker(hands):
-    return allmax(hands,key=hand_rank)
+def poker(hands,key=hand_rank):
+    return allmax(hands,key=key)
 
-
+ 
 def test():
-    hands=deal(10)
+    hands=deal(5,7)
     print(hands)
-    print(poker(hands))
+    print(poker(hands,key=best_wild_hand))
     
 
 test()
